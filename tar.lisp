@@ -67,6 +67,7 @@
 ;;; non-standard typeflags
 (defconstant +gnutar-long-link-name+ #x4b)
 (defconstant +gnutar-long-name+ #x4c)
+(defconstant +gnutar-sparse+ #x53)
 
 (defconstant +ascii-space+ #x20)
 (defconstant +ascii-zero+ #x30)
