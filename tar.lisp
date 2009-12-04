@@ -61,6 +61,9 @@
 (defconstant +tar-fifo-device+ #x36)
 (defconstant +tar-implementation-specific-file+ #x37)
 
+(defconstant +posix-extended-header+ #x78)
+(defconstant +posix-global-header+ #x67)
+
 ;;; non-standard typeflags
 (defconstant +gnutar-long-link-name+ #x4b)
 (defconstant +gnutar-long-name+ #x4c)
