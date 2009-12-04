@@ -205,8 +205,7 @@
 ;;; internal functions of all kinds
 
 (defun round-up-to-tar-block (num)
-  (let ((x (+ num (1- +tar-n-block-bytes+))))
-    (- x (logand x (1- +tar-n-block-bytes+)))))
+  (ceiling num +tar-n-block-bytes+))
 
 (defun tar-checksum-guts (block start transform-fun)
   (declare (type (simple-array (unsigned-byte 8) (*)) block))
