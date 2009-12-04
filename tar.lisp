@@ -50,20 +50,20 @@
 (defconstant +tar-n-record-bytes+ (* +tar-n-block-bytes+ +tar-n-record-blocks+))
 
 ;;; values for tar's `typeflag' field
-(defconstant +tar-regular-file+ (char-code #\0))
+(defconstant +tar-regular-file+ #x30)
 ;;; backwards compatibility
-(defconstant +tar-regular-alternate-file+ 0)
-(defconstant +tar-hard-link+ (char-code #\1))
-(defconstant +tar-symbolic-link+ (char-code #\2))
-(defconstant +tar-character-device+ (char-code #\3))
-(defconstant +tar-block-device+ (char-code #\4))
-(defconstant +tar-directory-file+ (char-code #\5))
-(defconstant +tar-fifo-device+ (char-code #\6))
-(defconstant +tar-implementation-specific-file+ (char-code #\7))
+(defconstant +tar-regular-alternate-file+ #x00)
+(defconstant +tar-hard-link+ #x31)
+(defconstant +tar-symbolic-link+ #x32)
+(defconstant +tar-character-device+ #x33)
+(defconstant +tar-block-device+ #x34)
+(defconstant +tar-directory-file+ #x35)
+(defconstant +tar-fifo-device+ #x36)
+(defconstant +tar-implementation-specific-file+ #x37)
 
 ;;; non-standard typeflags
-(defconstant +gnutar-long-link-name+ (char-code #\K))
-(defconstant +gnutar-long-name+ (char-code #\L))
+(defconstant +gnutar-long-link-name+ #x4b)
+(defconstant +gnutar-long-name+ #x4c)
 
 (defconstant +ascii-space+ #x20)
 (defconstant +ascii-zero+ #x30)
