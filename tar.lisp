@@ -121,8 +121,6 @@
                               buffer :start start :end end)
                  end
                  (length buffer))))
-    (unless (<= 0 start end (length buffer))
-      (error "Bounding indices ~A and ~A invalid" start end))
     ;; GNU tar permits storing numbers as binary; a binary number is
     ;; indicated by starting the field with #x80.
     (if (= (aref buffer start) #x80)
@@ -147,9 +145,6 @@
                (if nullp
                    (1- dend)
                    dend))))
-    (unless (and (array-in-bounds-p buffer start)
-                 (array-in-bounds-p buffer end))
-      (error "Bounding indices ~A and ~A invalid" start end))
     (loop for i from (1- end) downto start
           do (multiple-value-bind (quo rem) (truncate number radix)
                (setf number quo)
