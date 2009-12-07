@@ -360,6 +360,12 @@
             ((or (= (typeflag entry) +tar-regular-file+)
                  (= (typeflag entry) +tar-directory-file+))
              entry)
+            ((= (typeflag entry) +posix-extended-header+)
+             (error "Don't understand POSIX extended header entry"))
+            ((= (typeflag entry) +posix-global-header+)
+             (error "Don't understand POSIX global header entry"))
+            ((= (typeflag entry) +gnutar-sparse+)
+             (error "Don't understand GNU tar sparse entry"))
             (t
              (error "Can't understand typeflag: ~A" (typeflag entry))))))))
             
