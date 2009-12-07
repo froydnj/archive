@@ -19,18 +19,26 @@
    (length :initarg :length :reader field-length)
    (offset :initarg :offset :reader field-offset)))
 
+(defclass defaulting-descriptor ()
+  ((default :initarg :default :reader field-default)))
+
 (defclass null-terminated-descriptor ()
   ((null-terminated :initarg :nullp :reader null-terminated-p))
   (:default-initargs :nullp nil))
 
-(defclass string-descriptor (field-descriptor null-terminated-descriptor)
-  ())
+(defclass string-descriptor (field-descriptor null-terminated-descriptor
+                                              defaulting-descriptor)
+  ()
+  (:default-initargs :default (make-array 0 :element-type '(unsigned-byte 8))))
 
-(defclass byte-descriptor (field-descriptor)
-  ())
+(defclass byte-descriptor (field-descriptor defaulting-descriptor)
+  ()
+  (:default-initargs :default 0))
 
-(defclass number-descriptor (field-descriptor null-terminated-descriptor)
-  ((radix :initarg :radix :reader number-radix)))
+(defclass number-descriptor (field-descriptor null-terminated-descriptor
+                                              defaulting-descriptor)
+  ((radix :initarg :radix :reader number-radix))
+  (:default-initargs :default 0))
 
 (defgeneric field-ref (field buffer entry-start))
 
