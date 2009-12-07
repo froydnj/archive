@@ -2,8 +2,12 @@
 
 (in-package :archive)
 
+(defun make-field-map ()
+  (make-hash-table :test #'equalp))
+
 (defclass archive-entry ()
   ((stream :initform nil)
+   (fields :initform (make-field-map) :reader fields)
    (data-discarded-p :accessor data-discarded-p :initform nil)))
 
 (defclass cpio-entry (archive-entry)
