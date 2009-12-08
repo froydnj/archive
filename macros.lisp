@@ -14,6 +14,24 @@
                  fields)
     ,@body))
 
+(defclass field-descriptor ()
+  ((name :initarg :name :reader field-name)
+   (length :initarg :length :reader field-length)
+   (offset :initarg :offset :reader field-offset)))
+
+(defclass null-terminated-descriptor ()
+  ((null-terminated :initarg :nullp :reader null-terminated-p))
+  (:default-initargs :nullp nil))
+
+(defclass string-descriptor (field-descriptor null-terminated-descriptor)
+  ())
+
+(defclass byte-descriptor (field-descriptor)
+  ())
+
+(defclass number-descriptor (field-descriptor null-terminated-descriptor)
+  ((radix :initarg :radix :reader number-radix)))
+
 (defmacro define-octet-header (class-name &rest field-defs)
   (let ((offset 0))                     ; could be integrated in the LOOP?
     (flet ((offset-constant-symbol (name)
