@@ -126,8 +126,7 @@
   (+ size (logand (- 2 size) 3)))
 
 (defun round-up-cpio-entry-data (num)
-  (let ((x (+ num 3)))
-    (- x (logand x 3))))
+  (* (ceiling num 4) 4))
 
 (defmethod read-entry-from-archive ((archive svr4-cpio-archive))
   (let ((entry-block (read-entry-block archive)))
