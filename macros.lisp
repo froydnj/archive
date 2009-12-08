@@ -32,6 +32,23 @@
 (defclass number-descriptor (field-descriptor null-terminated-descriptor)
   ((radix :initarg :radix :reader number-radix)))
 
+(defgeneric field-ref (field buffer entry-start))
+
+(defmethod field-ref ((field string-descriptor) buffer entry-start)
+  (let ((field-start (+ entry-start (field-offset field))))
+    (read-bytevec-from-buffer buffer :start field-start
+                              :end (+ field-start (field-length field))
+                              :nullp (null-terminated-p field))))
+
+(defmethod field-ref ((field byte-descriptor) buffer entry-start)
+  (aref buffer (+ entry-start (field-offset field))))
+
+(defmethod field-ref ((field number-descriptor) buffer entry-start)
+  (let ((field-start (+ entry-start (field-offset field))))
+    (read-number-from-buffer buffer :start field-start
+                             :end (+ field-start (field-length field))
+                             :radix (number-radix field))))
+
 (defmacro define-octet-header (class-name &rest field-defs)
   (let ((offset 0))                     ; could be integrated in the LOOP?
     (flet ((offset-constant-symbol (name)
