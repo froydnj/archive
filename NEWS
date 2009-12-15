@@ -9,6 +9,8 @@ Elliot Slaughter.)
 
 Fixed compilation error in CLISP.  (Thanks to Elliot Slaughter.)
 
+Fixed calling out to _stat on Lispworks/Win32.  (Thanks to Luke Crook.)
+
 * Version 0.7, released 09-02-2008
 
 ** bugfixes
