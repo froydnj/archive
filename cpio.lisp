@@ -90,7 +90,7 @@
     (make-instance 'odc-cpio-entry
                    :name namestring
                    :mode (stat-mode stat)
-                   :ino (stat-ino stat)
+                   :inode (stat-ino stat)
                    :nlink (stat-nlink stat)
                    :uid (stat-uid stat)
                    :gid (stat-gid stat)
