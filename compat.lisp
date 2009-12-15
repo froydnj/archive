@@ -51,8 +51,8 @@
   (fli:with-dynamic-foreign-objects ()
     (let ((stat (fli:allocate-dynamic-foreign-object :type '_stat32))
           (string (fli:convert-to-dynamic-foreign-string (namestring file))))
-      (when (zerop (stat32 string stat)
-        (convert-to-lisp-struct stat))))))
+      (when (zerop (stat32 string stat))
+        (convert-to-lisp-struct stat)))))
 ) ; PROGN
 
 ;;; CMUCL returns multiple values from UNIX:UNIX-STAT.  We need to
