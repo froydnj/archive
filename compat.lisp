@@ -12,48 +12,47 @@
 ;;; available on Windows.  We provide our own here.
 #+(and lispworks win32)
 (progn
-(fli:define-foreign-function (c-stat "_stat")
+(fli:define-foreign-function (stat32 "_stat32")
     ((path :pointer)
      (struct-buf :pointer))
   :result-type :int)
 
-;;FIXME: I don't think all this info is correct
-;;       it might be better to define all the sub structures like dev_t
-(fli:define-c-struct _stat
-  (dev :unsigned-long)
-  (ino :short)
+;;; struct _stat comes in several different flavors under Win32.  This
+;;; is the version with 32-bit time_t and st_size.  It'd be nice to
+;;; figure out how to use the 64-bit st_size one, but trying to use that
+;;; results in arcane errors on my copy of Lispworks Personal 5.1.1.
+(fli:define-c-struct _stat32
+  (dev :unsigned-int)
+  (ino :unsigned-short)
   (mode :unsigned-short)
   (nlink :short)
   (uid :short)
   (gid :short)
-  (rdev :int)
+  (rdev :unsigned-int)
   (size :long)
-  (atime :long); ??
-  (mtime :long); ??
-  (ctime :long); ??
-  (blksize :long)
-  (blocks :long)
-  (attr :long))
+  (atime :long)
+  (mtime :long)
+  (ctime :long))
 
 (defstruct file-stat
-  inode device owner-id group-id size blocks mode last-access last-change
+  inode device owner-id group-id size mode last-access last-change
   last-modify links device-type)
 
 (defun convert-to-lisp-struct (stat)
   (fli:with-foreign-slots (dev ino mode nlink uid gid rdev size
-                               atime mtime ctime blksize blocks attr)
+                               atime mtime ctime)
       stat
     (make-file-stat :inode ino :device dev :owner-id uid :group-id gid
-                    :size size :blocks blocks :mode mode
+                    :size size :mode mode
                     :last-access atime :last-change ctime :last-modify mtime
                     :links nlink :device-type rdev)))
 
 (defun get-file-stat (file)
-  (when (probe-file file)
-    (fli:with-dynamic-foreign-objects ()
-      (let ((stat (fli:allocate-dynamic-foreign-object :type '_stat)))
-        (c-stat (fli:convert-to-foreign-string (namestring file)) stat)
-        (convert-to-lisp-struct stat)))))
+  (fli:with-dynamic-foreign-objects ()
+    (let ((stat (fli:allocate-dynamic-foreign-object :type '_stat32))
+          (string (fli:convert-to-dynamic-foreign-string (namestring file))))
+      (when (zerop (stat32 string stat)
+        (convert-to-lisp-struct stat))))))
 ) ; PROGN
 
 ;;; CMUCL returns multiple values from UNIX:UNIX-STAT.  We need to
