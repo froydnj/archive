@@ -363,7 +363,13 @@
             ((= (typeflag entry) +posix-extended-header+)
              (error "Don't understand POSIX extended header entry"))
             ((= (typeflag entry) +posix-global-header+)
-             (error "Don't understand POSIX global header entry"))
+             ;; FIXME: We should make the information from this
+             ;; available to the user.  At the moment, however, most
+             ;; global headers seen in the wild are git stashing a
+             ;; "comment=<sha1>".  So just ignore them for now.
+             (let ((global-header (read-data-block archive (size entry)
+                                                   #'round-up-to-tar-block)))
+               (read-entry-from-archive archive)))
             ((= (typeflag entry) +gnutar-sparse+)
              (error "Don't understand GNU tar sparse entry"))
             (t

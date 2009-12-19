@@ -4,6 +4,9 @@
 
 ** bugfixes
 
+ARCHIVE can now read POSIX extended header entries, such as those
+created by git.  The data from them are currently ignored.
+
 Fixed extraction of files on SBCL, CMUCL, and Lispworks.  (Thanks to
 Elliot Slaughter.)
 
