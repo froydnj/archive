@@ -14,7 +14,7 @@
   ())
 
 (define-octet-header odc-cpio-header
-    (magic 6 :octnum)
+  (magic 6 :octnum)
   (dev 6 :octnum)
   (inode 6 :octnum)
   (mode 6 :octnum)
@@ -30,7 +30,7 @@
   ((%name :initarg :name :reader %name)))
 
 (define-octet-header svr4-cpio-header
-    (magic 6 :hexnum)
+  (magic 6 :hexnum)
   (ino 8 :hexnum)
   (mode 8 :hexnum)
   (uid 8 :hexnum)
@@ -50,7 +50,7 @@
 
 ;;; definitions taken from the FreeBSD 5.1 manpage
 (define-octet-header tar-header
-    (%name 100 :string-null)
+  (%name 100 :string-null)
   (mode 8 :octnum)
   (uid 8 :octnum)
   (gid 8 :octnum)
@@ -71,4 +71,7 @@
   (%%padding 12 :string))
 
 (defclass tar-entry (archive-entry tar-header)
+  ())
+
+(defclass directory-tar-entry (tar-entry)
   ())

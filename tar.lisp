@@ -138,7 +138,8 @@
                    (t (error "Invalid byte: ~A in ~A"
                              byte (subseq buffer start end)))))))))
 
-(defun write-number-to-buffer (number buffer &key (start 0) end (radix 10) nullp)
+(defun write-number-to-buffer (number buffer
+                               &key (start 0) end (radix 10) nullp)
   (declare (type (simple-array (unsigned-byte 8) (*)) buffer))
   (declare (type (integer 2 36) radix))
   (let ((end (let ((dend (or end (length buffer))))
@@ -242,18 +243,18 @@
 (defparameter *modefuns-to-typeflags*
   #+use-sb-posix
   (list (cons #'sb-posix::s-isreg +tar-regular-file+)
-	(cons #'sb-posix::s-isdir +tar-directory-file+)
-	(cons #'sb-posix::s-ischr +tar-character-device+)
-	(cons #'sb-posix::s-isblk +tar-block-device+)
-	(cons #'sb-posix::s-isfifo +tar-fifo-device+)
-	(cons #'sb-posix::s-islnk +tar-symbolic-link+))
+        (cons #'sb-posix::s-isdir +tar-directory-file+)
+        (cons #'sb-posix::s-ischr +tar-character-device+)
+        (cons #'sb-posix::s-isblk +tar-block-device+)
+        (cons #'sb-posix::s-isfifo +tar-fifo-device+)
+        (cons #'sb-posix::s-islnk +tar-symbolic-link+))
   #-use-sb-posix
   (list (cons 'isreg +tar-regular-file+)
-	(cons 'isdir +tar-directory-file+)
-	(cons 'ischarfile +tar-character-device+)
-	(cons 'isblockfile +tar-block-device+)
-	(cons 'isfifo +tar-fifo-device+)
-	(cons 'islink +tar-symbolic-link+)))
+        (cons 'isdir +tar-directory-file+)
+        (cons 'ischarfile +tar-character-device+)
+        (cons 'isblockfile +tar-block-device+)
+        (cons 'isfifo +tar-fifo-device+)
+        (cons 'islink +tar-symbolic-link+)))
 
 (defun typeflag-for-mode (mode)
   (loop for (modefun . typeflag) in *modefuns-to-typeflags*
@@ -279,6 +280,13 @@
                      :size (stat-size stat)
                      :mtime (stat-mtime stat)))))
 
+(defmethod create-entry-from-pathname :around ((archive tar-archive) pathname)
+  (let ((instance (call-next-method)))
+    (when (fad:directory-pathname-p pathname)
+      (change-class instance 'directory-tar-entry))
+    instance))
+    
+
 (defmethod write-entry-to-buffer ((entry tar-entry) buffer &optional (start 0))
   (declare (type (simple-array (unsigned-byte 8) (*)) buffer))
   ;; ensure a clean slate
@@ -299,11 +307,32 @@
   (let* ((checksum (compute-checksum-for-tar-header buffer start)))
     (write-number-to-buffer checksum buffer
                             :start (+ start +tar-header-checksum-offset+)
-                            :end (+ start +tar-header-checksum-offset+ +tar-header-checksum-length+ -2)
+                            :end (+ start +tar-header-checksum-offset+
+                                    +tar-header-checksum-length+ -2)
                             :radix 8)
     ;; terminated with a NULL and then a space (!?)
     (setf (aref buffer (+ start +tar-header-checksum-offset+ 6)) 0
-          (aref buffer (+ start +tar-header-checksum-offset+ 7)) +ascii-space+)))
+          (aref buffer (+ start +tar-header-checksum-offset+ 7))
+          +ascii-space+)))
+
+(defmethod write-entry-to-archive :after (archive (entry directory-tar-entry)
+                                                  &key stream)
+
+  (let ((prefix-length (length (pathname-directory
+                                *default-pathname-defaults*))))
+    (fad:walk-directory
+     (name entry)
+     (lambda (pathname)
+       (write-entry-to-archive
+        archive
+        (create-entry-from-pathname
+         archive
+         (make-pathname :directory
+                        (cons :relative
+                              (nthcdr prefix-length
+                                      (pathname-directory pathname)))
+                        :name (pathname-name pathname)
+                        :type (pathname-type pathname))))))))
 
 (defun read-tar-entry-from-buffer (buffer &key (start 0))
   (with-extracted-fields (tar-header buffer start
@@ -424,9 +453,17 @@
                                            (archive-entry tar-entry)
                                            &key stream)
   (declare (ignore stream))
-  (unless (= (typeflag archive-entry) +tar-regular-file+)
+  (unless (member (typeflag archive-entry) (list +tar-regular-file+
+                                                 +tar-directory-file+)
+                  :test #'=)
     (error "Don't know how to write entries of type ~A yet"
            (typeflag archive-entry))))
+
+(defmethod write-entry-to-archive ((archive archive) (entry directory-tar-entry)
+                                   &key (stream t))
+  ;; write nothing
+  (values))
+
 
 (defmethod finalize-archive ((archive tar-archive))
   (let ((null-block (make-array +tar-n-record-bytes+
