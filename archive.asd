@@ -4,10 +4,10 @@
 (in-package :archive-system)
 
 (asdf:defsystem :archive
-  :version "0.8"
+  :version "0.8.1"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :description "A package for reading and writing archive (tar, cpio, etc.) files."
-  :depends-on (#+sbcl sb-posix trivial-gray-streams)
+  :depends-on (#+sbcl sb-posix trivial-gray-streams cl-fad)
   :components ((:file "package")
                (:file "generics" :depends-on ("package"))
                (:file "macros" :depends-on ("generics"))
@@ -25,6 +25,6 @@
 (defmethod perform :around ((o compile-op) (c (eql (find-system 'archive))))
   (let ((use-sb-posix #+(and sbcl (not win32)) t))
     (if use-sb-posix
-	(let ((*features* (cons :use-sb-posix *features*)))
-	  (call-next-method))
-	(call-next-method))))
+        (let ((*features* (cons :use-sb-posix *features*)))
+          (call-next-method))
+        (call-next-method))))
