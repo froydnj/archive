@@ -286,15 +286,16 @@
   (tar-header-write-typeflag-to-buffer buffer start (typeflag entry))
 
   ;; the checksum is written in a peculiar fashion
-  (let* ((checksum (compute-checksum-for-tar-header buffer start)))
+  (let* ((checksum (compute-checksum-for-tar-header buffer start))
+         (checksum-offset (+ start +tar-header-checksum-offset+)))
     (write-number-to-buffer checksum buffer
-                            :start (+ start +tar-header-checksum-offset+)
-                            :end (+ start +tar-header-checksum-offset+
+                            :start checksum-offset
+                            :end (+ checksum-offset
                                     +tar-header-checksum-length+ -2)
                             :radix 8)
     ;; terminated with a NULL and then a space (!?)
-    (setf (aref buffer (+ start +tar-header-checksum-offset+ 6)) 0
-          (aref buffer (+ start +tar-header-checksum-offset+ 7))
+    (setf (aref buffer (+ checksum-offset 6)) 0
+          (aref buffer (+ checksum-offset 7))
           +ascii-space+)))
 
 (defmethod write-entry-to-archive :after (archive (entry directory-tar-entry)
