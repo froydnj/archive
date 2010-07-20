@@ -19,19 +19,9 @@
 ;;; conversion functions.  The default functions will convert strings as
 ;;; ASCII (Latin-1, really), which may be good enough for you.
 ;;;
-;;; Bugs almost certainly remain.  In particular, the implementation
-;;; cannot yet handle archiving directories, so the equivalent of
-;;;
-;;;   tar cf foo.tar bar/
-;;;
-;;; will fail, whereas the equivalent of
-;;;
-;;;   tar cf foo.tar bar/*
-;;;
-;;; will work (so long as `bar' does not contain directories, of
-;;; course).  Regular files are the only archivable entities at the
-;;; moment; attempting to back up your /dev directory with the tools
-;;; contained herein will be a futile exercise.
+;;; Bugs almost certainly remain.  Regular files are the only archivable
+;;; entities at the moment; attempting to back up your /dev directory
+;;; with the tools contained herein will be a futile exercise.
 ;;;
 ;;; The implementation only handles ustar archives (POSIX circa 1988 or
 ;;; so) and does not handle pax archives (POSIX circa 2001 or so).  This
