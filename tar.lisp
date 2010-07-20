@@ -231,14 +231,6 @@
           finally (return-from null-block-p t))))
 
 (defparameter *modefuns-to-typeflags*
-  #+use-sb-posix
-  (list (cons #'sb-posix::s-isreg +tar-regular-file+)
-        (cons #'sb-posix::s-isdir +tar-directory-file+)
-        (cons #'sb-posix::s-ischr +tar-character-device+)
-        (cons #'sb-posix::s-isblk +tar-block-device+)
-        (cons #'sb-posix::s-isfifo +tar-fifo-device+)
-        (cons #'sb-posix::s-islnk +tar-symbolic-link+))
-  #-use-sb-posix
   (list (cons 'isreg +tar-regular-file+)
         (cons 'isdir +tar-directory-file+)
         (cons 'ischarfile +tar-character-device+)

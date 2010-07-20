@@ -107,27 +107,20 @@
 
 
 ;;; messing with stat modes
-(defun stat-file-type (mode)
-  (logand mode #o170000))
-
-(defun isdir (mode)
-  (= (stat-file-type mode) #o40000))
-
-(defun isreg (mode)
-  (= (stat-file-type mode) #o100000))
-
-(defun islink (mode)
-  (= (stat-file-type mode) #o0140000))
-
-(defun ischarfile (mode)
-  (= (stat-file-type mode) #o20000))
-
-(defun isblockfile (mode)
-  (= (stat-file-type mode) #o0060000))
-
-(defun isfifo (mode)
-  (= (stat-file-type mode) #o0010000))
-
+(macrolet ((define-file-type-test (fun unix-name mask)
+             (declare (ignorable mask))
+             `(defun ,fun (mode)
+                #+use-sb-posix
+                (,(intern (format nil "S-~A" unix-name) :sb-posix) mode)
+                #-use-sb-posix
+                (flet ((stat-file-type (mode) (logand mode #o170000)))
+                  (= (stat-file-type mode) ,mask)))))
+  (define-file-type-test isdir isdir #o40000)
+  (define-file-type-test isreg isreg #o100000)
+  (define-file-type-test islink islnk #o0140000)
+  (define-file-type-test ischarfile ischr #o20000)
+  (define-file-type-test isblockfile isblk #o0060000)
+  (define-file-type-test isfifo isfifo #o0010000))
 
 ;;; stat field accessors
 (defun stat-mode (stat)
