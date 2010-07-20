@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* Version 0.8.1, release 19-07-2010
+
+** new features
+
+Support was adding for writing directories and recursively adding files
+in directories.  (Thanks to Vsevolod Dyomkin.)
+
 * Version 0.8, released 18-12-2009
 
 ** bugfixes
