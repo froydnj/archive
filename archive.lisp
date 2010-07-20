@@ -80,8 +80,7 @@ requirements about alignment."
   (unless (eq (%archive-direction archive) :output)
     (error "Attempting to write to a non-output archive")))
 
-(defmethod write-entry-to-archive ((archive archive) entry
-                                   &key (stream t))
+(defmethod write-entry-to-archive ((archive archive) entry &key (stream t))
   (with-slots (entry-buffer (archive-stream stream)) archive
     ;; write the entry
     (write-entry-to-buffer entry entry-buffer 0)
@@ -109,9 +108,7 @@ requirements about alignment."
 
 ;;; providing streamy access for an entry
 (defun make-stream-for-entry (archive entry)
-  (let ((bounded-stream (make-bounded-stream (archive-stream archive)
-                                             (size entry))))
-    bounded-stream))
+  (make-bounded-stream (archive-stream archive) (size entry)))
 
 (defmethod read-entry-from-archive :around (archive)
   (let ((entry (call-next-method)))
