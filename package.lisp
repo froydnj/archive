@@ -8,6 +8,11 @@
 
            ;; conditions
            #:archive-error
+           #:tar-error
+           #:invalid-tar-checksum-error #:unhandled-error
+           #:unhandled-read-header-error #:unhandled-extract-entry-error
+           #:unhandled-write-entry-error
+           #:invalid-cpio-magic-error
 
            ;; entry slot readers
            #:name
