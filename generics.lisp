@@ -51,16 +51,21 @@ metadata and the name of FILENAME."))
 
 (defgeneric write-entry-to-archive (archive entry
                                             &key stream)
-  (:documentation "Write ENTRY to ARCHIVE.  Data associated with ENTRY
+  (:documentation "Write ENTRY to ARCHIVE.  gData associated with ENTRY
 is written to ARCHIVE according to the :STREAM argument.  If :STREAM is
 T, the expression (NAME ENTRY) is expected to refer to an existing file
 from which data may be read.  If :STREAM is a stream, then data is read
-from that strema and written to ARCHIVE.  If :STREAM is NIL, then no
+from that stream and written to ARCHIVE.  If :STREAM is NIL, then no
 entry data is written."))
 
 (defgeneric write-entry-to-buffer (entry buffer &optional start)
   (:documentation "Write the information associated with ENTRY into BUFFER,
 beginning at position START."))
+
+(defgeneric write-entry-data (archive entry stream)
+  (:documentation "Write any data associated with ENTRY, possibly found
+in STREAM to ARCHIVE; called after WRITE-ENTRY-TO-BUFFER.  STREAM is
+interpreted as in WRITE-ENTRY-TO-ARCHIVE."))
 
 (defgeneric finalize-archive (archive)
   (:documentation "Perform any necessary processing for finalizing ARCHIVE.

@@ -80,29 +80,32 @@ requirements about alignment."
   (unless (eq (%archive-direction archive) :output)
     (error "Attempting to write to a non-output archive")))
 
+(defmethod write-entry-data ((archive archive) entry stream)
+  (cond
+    ((eq t stream)
+     (with-open-file (filestream (name entry) :direction :input
+                                 :element-type '(unsigned-byte 8)
+                                 :if-does-not-exist :error)
+       (transfer-stream-to-archive archive filestream)))
+    ((typep stream 'stream)
+     (if (or (equal (stream-element-type stream) '(unsigned-byte 8))
+             (equal (stream-element-type stream) '(integer 0 255)))
+         (transfer-stream-to-archive archive stream)
+         (error "Stream has invalid STREAM-ELEMENT-TYPE ~A"
+                (stream-element-type stream))))
+    ((eq nil stream)
+     ;; do nothing
+     )
+    (t
+     (error "Invalid argument for :STREAM: ~A" stream))))
+
 (defmethod write-entry-to-archive ((archive archive) entry &key (stream t))
   (with-slots (entry-buffer (archive-stream stream)) archive
     ;; write the entry
     (write-entry-to-buffer entry entry-buffer 0)
     (write-sequence entry-buffer archive-stream)
     ;; write any associated data
-    (cond
-      ((eq t stream)
-       (with-open-file (filestream (name entry) :direction :input
-                                   :element-type '(unsigned-byte 8)
-                                   :if-does-not-exist :error)
-         (transfer-stream-to-archive archive filestream)))
-      ((typep stream 'stream)
-       (if (or (equal (stream-element-type stream) '(unsigned-byte 8))
-               (equal (stream-element-type stream) '(integer 0 255)))
-           (transfer-stream-to-archive archive stream)
-           (error "Stream has invalid STREAM-ELEMENT-TYPE ~A"
-                  (stream-element-type stream))))
-      ((eq nil stream)
-       ;; do nothing
-       )
-      (t
-       (error "Invalid argument for :STREAM: ~A" stream)))
+    (write-entry-data archive entry stream)
     (values)))
 
 
