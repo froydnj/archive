@@ -77,6 +77,19 @@
   (declare (ignore initargs))
   (initialize-entry-buffer instance +tar-header-length+))
 
+
+;;; Conditions
+
+(define-condition invalid-tar-checksum-error (archive-error)
+  ((provided :initarg :provided :reader provided)
+   (computed :initarg :computed :reader computed))
+  (:report (lambda (condition stream)
+             (format stream "Invalid tar header checksum ~D (wanted ~D)"
+                     (provided condition) (computed condition))))
+  (:documentation "Signaled when the checksum in a tar header is invalid."))
+
+;;; Groveling through tar headers
+
 (defun convert-bytevec-to-string (buffer &key (start 0) end)
   (let* ((end (or end
                   (position 0 buffer :start start :end end)
@@ -219,8 +232,8 @@
     (if (= sum checksum)
         t
         ;; try the older, signed arithmetic way
-        (let ((sum (compute-old-checksum-for-tar-header block start)))
-          (= sum checksum)))))
+        (let ((signed-sum (compute-old-checksum-for-tar-header block start)))
+          (values (= signed-sum checksum) sum)))))
 
 (defun null-block-p (block start)
   (declare (type (simple-array (unsigned-byte 8) (*)) block))
@@ -321,20 +334,23 @@
   (with-extracted-fields (tar-header buffer start
                                      %name mode mtime size checksum uid
                                      gid magic typeflag uname gname)
-    (if (tar-block-checksum-matches-p buffer checksum start)
-        (make-instance 'tar-entry
-                       :%name %name
-                       :mode mode
-                       :mtime mtime
-                       :size size
-                       :checksum checksum
-                       :uid uid
-                       :gid gid
-                       :magic magic
-                       :typeflag typeflag
-                       :uname uname
-                       :gname gname)
-        (error "Invalid tar entry header data!"))))
+    (multiple-value-bind (validp computed)
+        (tar-block-checksum-matches-p buffer checksum start)
+      (unless validp
+        (error 'invalid-tar-checksum-error
+               :provided checksum :computed computed))
+      (make-instance 'tar-entry
+                     :%name %name
+                     :mode mode
+                     :mtime mtime
+                     :size size
+                     :checksum checksum
+                     :uid uid
+                     :gid gid
+                     :magic magic
+                     :typeflag typeflag
+                     :uname uname
+                     :gname gname))))
 
 
 ;;; buffering data from the archive's stream
