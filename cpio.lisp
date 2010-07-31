@@ -68,6 +68,13 @@
 (defmethod entry-fifo-p ((entry cpio-entry))
   (isfifo (mode entry)))
 
+(define-condition invalid-cpio-magic-error (archive-error)
+  ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Magic field for entry is invalid")))
+  (:documentation "Signaled when the magic field for an entry is invalid."))
+
 (defmethod create-entry-from-pathname ((archive svr4-cpio-archive) pathname)
   (let ((namestring (namestring pathname))
         (stat (stat pathname)))
@@ -103,7 +110,7 @@
   (let ((entry-block (read-entry-block archive)))
     (when (mismatch *odc-cpio-magic-vector* entry-block
                     :start2 0 :end2 +odc-cpio-header-magic-length+)
-      (error "Magic field for entry is invalid"))
+      (error 'invalid-cpio-magic-error))
     (with-extracted-fields (odc-cpio-header entry-block 0
                                            dev inode mode uid gid
                                            nlink mtime namesize filesize)
@@ -132,7 +139,7 @@
   (let ((entry-block (read-entry-block archive)))
     (when (mismatch *svr4-nocrc-cpio-magic-vector* entry-block
                     :start2 0 :end2 +svr4-cpio-header-magic-length+)
-      (error "Magic field for entry is invalid"))
+      (error 'invalid-cpio-magic-error))
     (with-extracted-fields (svr4-cpio-header entry-block 0
                                             mode uid gid mtime
                                             nlink ino
