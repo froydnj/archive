@@ -6,6 +6,9 @@
            ;; creating
            #:open-archive #:close-archive
 
+           ;; conditions
+           #:archive-error
+
            ;; entry slot readers
            #:name
            #:entry-stream

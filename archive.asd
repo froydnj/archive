@@ -9,6 +9,7 @@
   :description "A package for reading and writing archive (tar, cpio, etc.) files."
   :depends-on (#+sbcl sb-posix trivial-gray-streams cl-fad)
   :components ((:file "package")
+               (:file "conditions" :depends-on ("package"))
                (:file "generics" :depends-on ("package"))
                (:file "macros" :depends-on ("generics"))
                (:file "formats" :depends-on ("macros"))
