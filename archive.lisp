@@ -113,6 +113,25 @@ requirements about alignment."
     (write-entry-data archive entry stream)
     (values)))
 
+(defmethod write-entry-to-archive :after (archive (entry directory-entry-mixin)
+                                                  &key stream)
+
+  (let ((prefix-length (length (pathname-directory
+                                *default-pathname-defaults*))))
+    (fad:walk-directory
+     (name entry)
+     (lambda (pathname)
+       (write-entry-to-archive
+        archive
+        (create-entry-from-pathname
+         archive
+         (make-pathname :directory
+                        (cons :relative
+                              (nthcdr prefix-length
+                                      (pathname-directory pathname)))
+                        :name (pathname-name pathname)
+                        :type (pathname-type pathname))))))))
+
 
 ;;; providing streamy access for an entry
 (defun make-stream-for-entry (archive entry)

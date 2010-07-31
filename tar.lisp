@@ -342,25 +342,6 @@
           (aref buffer (+ checksum-offset 7))
           +ascii-space+)))
 
-(defmethod write-entry-to-archive :after (archive (entry directory-tar-entry)
-                                                  &key stream)
-
-  (let ((prefix-length (length (pathname-directory
-                                *default-pathname-defaults*))))
-    (fad:walk-directory
-     (name entry)
-     (lambda (pathname)
-       (write-entry-to-archive
-        archive
-        (create-entry-from-pathname
-         archive
-         (make-pathname :directory
-                        (cons :relative
-                              (nthcdr prefix-length
-                                      (pathname-directory pathname)))
-                        :name (pathname-name pathname)
-                        :type (pathname-type pathname))))))))
-
 (defun read-tar-entry-from-buffer (buffer &key (start 0))
   (with-extracted-fields (tar-header buffer start
                                      %name mode mtime size checksum uid
