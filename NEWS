@@ -7,6 +7,8 @@
 Support was adding for writing directories and recursively adding files
 in directories.  (Thanks to Vsevolod Dyomkin.)
 
+A condition hierarchy was added.
+
 * Version 0.8, released 18-12-2009
 
 ** bugfixes
