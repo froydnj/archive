@@ -158,22 +158,11 @@
                            :name name)
             nil)))))
 
-(defmethod discard-entry ((archive svr4-cpio-archive)
-                          (entry svr4-cpio-entry))
+(defmethod discard-entry ((archive cpio-archive) (entry cpio-entry))
   (discard-unused-entry-data archive entry #'round-up-cpio-entry-data))
 
-(defmethod discard-entry ((archive odc-cpio-archive)
-                          (entry odc-cpio-entry))
-  (discard-unused-entry-data archive entry #'round-up-cpio-entry-data))
-
-(defmethod transfer-entry-data-to-stream ((archive odc-cpio-archive)
-                                          (entry odc-cpio-entry)
-                                          stream)
-  (transfer-entry-data-to-stream* archive entry stream
-                                  #'round-up-cpio-entry-data))
-
-(defmethod transfer-entry-data-to-stream ((archive svr4-cpio-archive)
-                                          (entry svr4-cpio-entry)
+(defmethod transfer-entry-data-to-stream ((archive cpio-archive)
+                                          (entry cpio-entry)
                                           stream)
   (transfer-entry-data-to-stream* archive entry stream
                                   #'round-up-cpio-entry-data))
