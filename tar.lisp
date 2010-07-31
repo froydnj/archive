@@ -80,7 +80,11 @@
 
 ;;; Conditions
 
-(define-condition invalid-tar-checksum-error (archive-error)
+(define-condition tar-error (archive-error)
+  ()
+  (:documentation "All errors specific to tar archives are of this type."))
+
+(define-condition invalid-tar-checksum-error (tar-error)
   ((provided :initarg :provided :reader provided)
    (computed :initarg :computed :reader computed))
   (:report (lambda (condition stream)
@@ -88,11 +92,11 @@
                      (provided condition) (computed condition))))
   (:documentation "Signaled when the checksum in a tar header is invalid."))
 
-(define-condition unhandled-error (archive-error)
+(define-condition unhandled-error (tar-error)
   ((typeflag :initarg :typeflag :reader typeflag))
   (:documentation "Signaled when a tar entry that ARCHIVE doesn't understand is encountered."))
 
-(define-condition unhandled-read-header-error (unhandled-error)
+(define-condition unhandled-read-header-error (tar-error)
   ()
   (:report (lambda (condition stream)
              (let ((flag (typeflag condition)))
@@ -105,14 +109,14 @@
                   (format stream "Can't understand typeflag: ~A" flag))))))
   (:documentation "Signaled when attempting to parse an unsupported tar entry."))
 
-(define-condition unhandled-extract-entry-error (unhandled-error)
+(define-condition unhandled-extract-entry-error (tar-error)
   ()
   (:report (lambda (condition stream)
              (format stream "Don't know how to extract a type ~A tar entry yet"
                      (typeflag condition))))
   (:documentation "Signaled when attempting to extract an unsupported tar entry."))
 
-(define-condition unhandled-write-entry-error (unhandled-error)
+(define-condition unhandled-write-entry-error (tar-error)
   ()
   (:report (lambda (condition stream)
              (format stream "Don't know how to write a type ~A tar entry yet"
