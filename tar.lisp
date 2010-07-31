@@ -484,12 +484,6 @@
                   :test #'=)
     (error 'unhandled-write-entry-error :typeflag (typeflag entry))))
 
-(defmethod write-entry-to-archive ((archive archive) (entry directory-tar-entry)
-                                   &key (stream t))
-  ;; write nothing
-  (values))
-
-
 (defmethod finalize-archive ((archive tar-archive))
   (let ((null-block (make-array +tar-n-record-bytes+
                                 :element-type '(unsigned-byte 8)

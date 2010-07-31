@@ -99,6 +99,11 @@ requirements about alignment."
     (t
      (error "Invalid argument for :STREAM: ~A" stream))))
 
+(defmethod write-entry-data ((archive archive) (entry directory-entry-mixin)
+                             stream)
+  ;; Directories generally don't have any associated data.
+  (values))
+
 (defmethod write-entry-to-archive ((archive archive) entry &key (stream t))
   (with-slots (entry-buffer (archive-stream stream)) archive
     ;; write the entry
