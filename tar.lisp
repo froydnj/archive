@@ -87,6 +87,37 @@
              (format stream "Invalid tar header checksum ~D (wanted ~D)"
                      (provided condition) (computed condition))))
   (:documentation "Signaled when the checksum in a tar header is invalid."))
+
+(define-condition unhandled-error (archive-error)
+  ((typeflag :initarg :typeflag :reader typeflag))
+  (:documentation "Signaled when a tar entry that ARCHIVE doesn't understand is encountered."))
+
+(define-condition unhandled-read-header-error (unhandled-error)
+  ()
+  (:report (lambda (condition stream)
+             (let ((flag (typeflag condition)))
+               (cond
+                 ((= flag +posix-global-header+)
+                  (format stream "Don't understand POSIX extended header entry"))
+                 ((= flag +gnutar-sparse+)
+                  (format stream "Don't understand GNU tar sparse entry"))
+                 (t
+                  (format stream "Can't understand typeflag: ~A" flag))))))
+  (:documentation "Signaled when attempting to parse an unsupported tar entry."))
+
+(define-condition unhandled-extract-entry-error (unhandled-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "Don't know how to extract a type ~A tar entry yet"
+                     (typeflag condition))))
+  (:documentation "Signaled when attempting to extract an unsupported tar entry."))
+
+(define-condition unhandled-write-entry-error (unhandled-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "Don't know how to write a type ~A tar entry yet"
+                     (typeflag condition))))
+  (:documentation "Signaled when attempting to write an unsupported tar entry."))
 
 ;;; Groveling through tar headers
 
@@ -388,8 +419,6 @@
             ((or (= (typeflag entry) +tar-regular-file+)
                  (= (typeflag entry) +tar-directory-file+))
              entry)
-            ((= (typeflag entry) +posix-extended-header+)
-             (error "Don't understand POSIX extended header entry"))
             ((= (typeflag entry) +posix-global-header+)
              ;; FIXME: We should make the information from this
              ;; available to the user.  At the moment, however, most
@@ -398,10 +427,9 @@
              (let ((global-header (read-data-block archive (size entry)
                                                    #'round-up-to-tar-block)))
                (read-entry-from-archive archive)))
-            ((= (typeflag entry) +gnutar-sparse+)
-             (error "Don't understand GNU tar sparse entry"))
             (t
-             (error "Can't understand typeflag: ~A" (typeflag entry))))))))
+             (error 'unhandled-read-header-error
+                    :typeflag (typeflag entry))))))))
             
 ;;; FIXME: must add permissions handling, mtime, etc.  maybe those should
 ;;; be specified by flags or somesuch?
@@ -418,8 +446,7 @@
                                :element-type '(unsigned-byte 8))
          (transfer-entry-data-to-stream archive entry stream)))
       (t
-       (error "Don't know how to extract a type ~A tar entry yet" 
-              (typeflag entry))))))
+       (error 'unhandled-extract-entry-error :typeflag (typeflag entry))))))
 
 (defmethod transfer-entry-data-to-stream ((archive tar-archive)
                                           (entry tar-entry)
@@ -449,14 +476,13 @@
 
 ;;; writing entries in various guises
 (defmethod write-entry-to-archive :before ((archive tar-archive)
-                                           (archive-entry tar-entry)
+                                           (entry tar-entry)
                                            &key stream)
   (declare (ignore stream))
-  (unless (member (typeflag archive-entry) (list +tar-regular-file+
-                                                 +tar-directory-file+)
+  (unless (member (typeflag entry) (list +tar-regular-file+
+                                         +tar-directory-file+)
                   :test #'=)
-    (error "Don't know how to write entries of type ~A yet"
-           (typeflag archive-entry))))
+    (error 'unhandled-write-entry-error :typeflag (typeflag entry))))
 
 (defmethod write-entry-to-archive ((archive archive) (entry directory-tar-entry)
                                    &key (stream t))
