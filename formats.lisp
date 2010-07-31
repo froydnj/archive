@@ -10,6 +10,9 @@
    (fields :initform (make-field-map) :reader fields)
    (data-discarded-p :accessor data-discarded-p :initform nil)))
 
+(defclass directory-entry-mixin ()
+  ())
+
 (defclass cpio-entry (archive-entry)
   ())
 
@@ -73,5 +76,5 @@
 (defclass tar-entry (archive-entry tar-header)
   ())
 
-(defclass directory-tar-entry (tar-entry)
+(defclass directory-tar-entry (tar-entry directory-entry-mixin)
   ())
