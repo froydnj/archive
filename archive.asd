@@ -4,7 +4,7 @@
 (in-package :archive-system)
 
 (asdf:defsystem :archive
-  :version "0.8.1"
+  :version "0.8.2"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :description "A package for reading and writing archive (tar, cpio, etc.) files."
   :depends-on (#+sbcl sb-posix trivial-gray-streams cl-fad)
