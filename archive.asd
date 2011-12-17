@@ -14,7 +14,7 @@
                (:file "macros" :depends-on ("generics"))
                (:file "formats" :depends-on ("macros"))
                (:file "stream" :depends-on ("package"))
-               (:file "archive" :depends-on ("generics" "stream" "macros"))
+               (:file "archive" :depends-on ("generics" "stream" "macros" "formats"))
                (:file "compat" :depends-on ("package"))
                (:file "tar" :depends-on ("compat" "formats" "conditions" "generics" "archive"))
                (:file "cpio" :depends-on ("compat" "formats" "conditions" "generics" "archive"))
