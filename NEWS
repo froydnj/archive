@@ -1,5 +1,15 @@
 -*- mode: outline -*-
 
+* Version 0.9, released 16-12-2012
+
+** bugfixes
+
+Handling of absolute pathnames when creating tar archives was fixed.
+(Thanks to Vsevolod Dymokin.)
+
+Handling of *PRINT-CASE* when interning symbols was fixed.  (Thanks to
+Orivej Desh.)
+
 * Version 0.8.1, release 19-07-2010
 
 ** new features
