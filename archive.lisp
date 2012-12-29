@@ -116,21 +116,14 @@ requirements about alignment."
 (defmethod write-entry-to-archive :after (archive (entry directory-entry-mixin)
                                           &key stream)
   (declare (ignore stream))
-  (let ((prefix-length (length (pathname-directory
-                                *default-pathname-defaults*)))
-        (dirname (name entry)))
+  (let ((dirname (name entry)))
     (fad:walk-directory
      dirname
      (lambda (pathname)
        (let* ((absolute? (and (not (string= "" dirname))
                               (char= #\/ (char dirname 0))))
-              (directory (if absolute? (string-trim "/" dirname)
-                             (cons :relative
-                                   (nthcdr prefix-length
-                                           (pathname-directory pathname)))))
-              (adjusted-pathname (make-pathname :directory directory
-                                                :name (pathname-name pathname)
-                                                :type (pathname-type pathname)))
+              (adjusted-pathname (if absolute? pathname
+                                     (fad:pathname-as-file (enough-namestring pathname))))
               (entry (create-entry-from-pathname archive adjusted-pathname)))
          (write-entry-to-archive archive entry))))))
 
