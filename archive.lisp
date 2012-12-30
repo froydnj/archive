@@ -117,15 +117,19 @@ requirements about alignment."
                                           &key stream)
   (declare (ignore stream))
   (let ((dirname (name entry)))
-    (fad:walk-directory
-     dirname
+    (mapc
      (lambda (pathname)
-       (let* ((absolute? (and (not (string= "" dirname))
-                              (char= #\/ (char dirname 0))))
-              (adjusted-pathname (if absolute? pathname
-                                     (fad:pathname-as-file (enough-namestring pathname))))
-              (entry (create-entry-from-pathname archive adjusted-pathname)))
-         (write-entry-to-archive archive entry))))))
+       (flet ((relative-pathname (pathname)
+                (if (fad:directory-pathname-p pathname)
+                    (fad:pathname-as-directory (enough-namestring pathname))
+                    (fad:pathname-as-file (enough-namestring pathname)))))
+         (let* ((absolute? (and (not (string= "" dirname))
+                                (char= #\/ (char dirname 0))))
+                (adjusted-pathname (if absolute? pathname
+                                       (relative-pathname pathname)))
+                (entry (create-entry-from-pathname archive adjusted-pathname)))
+           (write-entry-to-archive archive entry))))
+     (fad:list-directory dirname))))
 
 
 ;;; providing streamy access for an entry
