@@ -7,6 +7,7 @@
 
 (defclass archive-entry ()
   ((stream :initform nil)
+   (pathname :initarg :pathname :accessor entry-pathname)
    (fields :initform (make-field-map) :reader fields)
    (data-discarded-p :accessor data-discarded-p :initform nil)))
 
