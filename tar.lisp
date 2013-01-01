@@ -218,7 +218,11 @@
 
 (defmethod print-object ((entry tar-entry) stream)
   (print-unreadable-object (entry stream)
-    (format stream "Tar-Entry ~A" (name entry))))
+    (format stream "Tar-Entry ~A"
+            (cond
+              ((slot-boundp entry 'pathname)
+               (namestring (entry-pathname entry)))
+              (t (name entry))))))
 
 (defmethod entry-regular-file-p ((entry tar-entry))
   (eql (typeflag entry) +tar-regular-file+))
@@ -293,22 +297,16 @@
         finally (error "No typeflag found for mode ~A" mode)))
 
 (defmethod create-entry-from-pathname ((archive tar-archive) pathname)
-  (let ((namestring (namestring pathname)))
-    ;; FIXME: figure out how to properly use the prefix field so we can
-    ;; ditch this check.
-    (when (> (length namestring) (1- +tar-header-%name-length+))
-      (error "~A has too many characters in it." pathname))
-    (let ((stat (stat pathname)))
-      (make-instance 'tar-entry
-                     :%name (funcall *string-to-bytevec-conversion-function*
-                                     namestring)
-                     :mode (logand +permissions-mask+
-                                   (stat-mode stat))
-                     :typeflag (typeflag-for-mode (stat-mode stat))
-                     :uid (stat-uid stat)
-                     :gid (stat-gid stat)
-                     :size (stat-size stat)
-                     :mtime (stat-mtime stat)))))
+  (let ((stat (stat pathname)))
+    (make-instance 'tar-entry
+		   :pathname pathname
+		   :mode (logand +permissions-mask+
+				 (stat-mode stat))
+		   :typeflag (typeflag-for-mode (stat-mode stat))
+		   :uid (stat-uid stat)
+		   :gid (stat-gid stat)
+		   :size (stat-size stat)
+		   :mtime (stat-mtime stat))))
 
 (defmethod create-entry-from-pathname :around ((archive tar-archive) pathname)
   (let ((instance (call-next-method)))
@@ -323,7 +321,14 @@
   (assert (<= (+ start +tar-n-block-bytes+) (length buffer)))
   (fill buffer 0 :start start :end (+ start +tar-n-block-bytes+))
 
-  (tar-header-write-%name-to-buffer buffer start (%name entry))
+  (let ((namestring (namestring (entry-pathname entry))))
+    ;; FIXME: figure out how to properly use the prefix field so we can
+    ;; ditch this check.
+    (when (> (length namestring) (1- +tar-header-%name-length+))
+      (error "~A has too many characters in it." pathname))
+    (tar-header-write-%name-to-buffer buffer start
+				      (funcall *string-to-bytevec-conversion-function*
+					       namestring)))
   (tar-header-write-mode-to-buffer buffer start (mode entry))
   (tar-header-write-uid-to-buffer buffer start (uid entry))
   (tar-header-write-gid-to-buffer buffer start (gid entry))

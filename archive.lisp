@@ -83,7 +83,8 @@ requirements about alignment."
 (defmethod write-entry-data ((archive archive) entry stream)
   (cond
     ((eq t stream)
-     (with-open-file (filestream (name entry) :direction :input
+     (with-open-file (filestream (entry-pathname entry)
+                                 :direction :input
                                  :element-type '(unsigned-byte 8)
                                  :if-does-not-exist :error)
        (transfer-stream-to-archive archive filestream)))
@@ -116,15 +117,16 @@ requirements about alignment."
 (defmethod write-entry-to-archive :after (archive (entry directory-entry-mixin)
                                           &key stream)
   (declare (ignore stream))
-  (let ((dirname (name entry)))
+  (let ((dirname (entry-pathname entry)))
     (mapc
      (lambda (pathname)
        (flet ((relative-pathname (pathname)
                 (if (fad:directory-pathname-p pathname)
                     (fad:pathname-as-directory (enough-namestring pathname))
                     (fad:pathname-as-file (enough-namestring pathname)))))
-         (let* ((absolute? (and (not (string= "" dirname))
-                                (char= #\/ (char dirname 0))))
+         (let* ((absolute? (and (not (string= "" (namestring dirname)))
+                                (eq :absolute
+                                    (first (pathname-directory dirname)))))
                 (adjusted-pathname (if absolute? pathname
                                        (relative-pathname pathname)))
                 (entry (create-entry-from-pathname archive adjusted-pathname)))
