@@ -77,5 +77,8 @@
 (defclass tar-entry (archive-entry tar-header)
   ())
 
+(defclass tar-longname-entry (tar-entry)
+  ((base-pathname :reader base-pathname :initarg :base-pathname)))
+
 (defclass directory-tar-entry (tar-entry directory-entry-mixin)
   ())

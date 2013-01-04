@@ -224,6 +224,14 @@
                (namestring (entry-pathname entry)))
               (t (name entry))))))
 
+(defmethod print-object ((entry tar-longname-entry) stream)
+  (print-unreadable-object (entry stream)
+    (format stream "Tar-Longname-Entry ~A"
+            (cond
+              ((slot-boundp entry 'pathname)
+               (namestring (entry-pathname entry)))
+              (t (name entry))))))
+
 (defmethod entry-regular-file-p ((entry tar-entry))
   (eql (typeflag entry) +tar-regular-file+))
 
@@ -314,6 +322,37 @@
       (change-class instance 'directory-tar-entry))
     instance))
     
+(defmethod write-entry-to-archive ((archive tar-archive) (entry tar-entry)
+                                   &key (stream t))
+  (let ((namestring (namestring (entry-pathname entry))))
+    (when (and (>= (length namestring) +tar-header-%name-length+)
+               (zerop (length (%name entry))))
+      (let ((link-entry (make-instance 'tar-longname-entry
+                                       :pathname (entry-pathname entry)
+                                       :%name (funcall *string-to-bytevec-conversion-function*
+                                                       "././@LongLink")
+                                       :uname "root"
+                                       :gname "root"
+                                       :typeflag +gnutar-long-name+
+                                       :size (1+ (length namestring)))))
+        (write-entry-to-archive archive link-entry :stream stream)))
+    (call-next-method)))
+
+(defmethod write-entry-data ((archive tar-archive)
+                             (entry tar-longname-entry) stream)
+  (declare (ignore stream))
+  ;; This way is slow and inefficient, but obviously correct.  It is
+  ;; also easy to guarantee that we're writing in 512-byte blocks.
+  (let* ((namestring (namestring (entry-pathname entry)))
+         (bytename (funcall *string-to-bytevec-conversion-function*
+                            namestring))
+         (entry-length (round-up-to-tar-block (1+ (length bytename))))
+         (entry-buffer (make-array entry-length
+                                   :element-type '(unsigned-byte 8)
+                                   :initial-element 0)))
+    (replace entry-buffer bytename)
+    (write-sequence entry-buffer (archive-stream archive))
+    (values)))
 
 (defmethod write-entry-to-buffer ((entry tar-entry) buffer &optional (start 0))
   (declare (type (simple-array (unsigned-byte 8) (*)) buffer))
@@ -321,14 +360,17 @@
   (assert (<= (+ start +tar-n-block-bytes+) (length buffer)))
   (fill buffer 0 :start start :end (+ start +tar-n-block-bytes+))
 
-  (let ((namestring (namestring (entry-pathname entry))))
-    ;; FIXME: figure out how to properly use the prefix field so we can
-    ;; ditch this check.
-    (when (> (length namestring) (1- +tar-header-%name-length+))
-      (error "~A has too many characters in it." pathname))
-    (tar-header-write-%name-to-buffer buffer start
-				      (funcall *string-to-bytevec-conversion-function*
-					       namestring)))
+  (cond
+    ((> (length (%name entry)) 0)
+     (tar-header-write-%name-to-buffer buffer start (%name entry)))
+    (t
+     (let* ((namestring (namestring (entry-pathname entry)))
+            (bytestring (funcall *string-to-bytevec-conversion-function*
+                                 namestring)))
+       (tar-header-write-%name-to-buffer buffer start
+                                         (subseq bytestring 0
+                                                 (min (length bytestring)
+                                                      (1- +tar-header-%name-length+)))))))
   (tar-header-write-mode-to-buffer buffer start (mode entry))
   (tar-header-write-uid-to-buffer buffer start (uid entry))
   (tar-header-write-gid-to-buffer buffer start (gid entry))
@@ -470,7 +512,8 @@
                                            &key stream)
   (declare (ignore stream))
   (unless (member (typeflag entry) (list +tar-regular-file+
-                                         +tar-directory-file+)
+                                         +tar-directory-file+
+                                         +gnutar-long-name+)
                   :test #'=)
     (error 'unhandled-write-entry-error :typeflag (typeflag entry))))
 
