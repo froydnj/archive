@@ -45,7 +45,7 @@
   (initialize-entry-buffer instance +svr4-cpio-header-length+))
 
 (defmethod name ((entry cpio-entry))
-  (funcall *bytevec-to-string-conversion-function* (%name entry)))
+  (bytevec-to-string (%name entry)))
 
 (defmethod size ((entry cpio-entry))
   (filesize entry))
@@ -172,8 +172,7 @@
 (defmethod write-entry-to-buffer ((entry odc-cpio-entry) buffer
                                   &optional (start 0))
   (let* ((namestring (namestring (entry-pathname entry)))
-         (bytestring (funcall *string-to-bytevec-conversion-function*
-                              namestring)))
+         (bytestring (string-to-bytevec namestring)))
     (fill buffer 0 :start start :end (+ start +odc-cpio-header-length+))
 
     (odc-cpio-header-write-magic-to-buffer buffer start *odc-cpio-magic-vector*)
@@ -195,8 +194,7 @@
 (defmethod write-entry-to-buffer ((entry svr4-cpio-entry) buffer
                                   &optional (start 0))
   (let* ((namestring (namestring (entry-pathname entry)))
-         (bytestring (funcall *string-to-bytevec-conversion-function*
-                              namestring)))
+         (bytestring (string-to-bytevec namestring)))
     (fill buffer 0 :start start :end (+ start +svr4-cpio-header-length+))
 
     (svr4-cpio-header-write-magic-to-buffer buffer start *svr4-nocrc-cpio-magic-vector*)

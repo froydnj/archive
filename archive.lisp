@@ -26,6 +26,11 @@
 (defvar *bytevec-to-string-conversion-function* #'convert-bytevec-to-string)
 (defvar *string-to-bytevec-conversion-function* #'convert-string-to-bytevec)
 
+(defun bytevec-to-string (bytevec)
+  (funcall *bytevec-to-string-conversion-function* bytevec))
+(defun string-to-bytevec (string)
+  (funcall *string-to-bytevec-conversion-function* string))
+
 (defclass archive ()
   ((entry-buffer :initarg :entry-buffer :reader entry-buffer
                  :type (simple-array (unsigned-byte 8) (*)))

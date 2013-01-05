@@ -181,15 +181,13 @@
   (let ((prefix (%prefix entry)))
     (if (or (zerop (length prefix))
             (zerop (aref prefix 0)))    ; no prefix given
-        (funcall *bytevec-to-string-conversion-function* (%name entry))
-        (funcall *bytevec-to-string-conversion-function*
-                 (concatenate '(vector (unsigned-byte 8))
-                              prefix (%name entry))))))
+        (bytevec-to-string (%name entry))
+        (bytevec-to-string (concatenate '(vector (unsigned-byte 8))
+                                        prefix (%name entry))))))
 
 (defmethod (setf name) (value (entry tar-entry))
   ;;; FIXME: need to handle `PREFIX' correctly too.
-  (setf (%name entry)
-        (funcall *string-to-bytevec-conversion-function* value))
+  (setf (%name entry) (string-to-bytevec value))
   value)
 
 (defmethod print-object ((entry tar-entry) stream)
@@ -305,8 +303,8 @@
                (zerop (length (%name entry))))
       (let ((link-entry (make-instance 'tar-longname-entry
                                        :pathname (entry-pathname entry)
-                                       :%name (funcall *string-to-bytevec-conversion-function*
-                                                       "././@LongLink")
+                                       :%name (convert-string-to-bytevec
+                                               "././@LongLink")
                                        :uname "root"
                                        :gname "root"
                                        :typeflag +gnutar-long-name+
@@ -320,8 +318,7 @@
   ;; This way is slow and inefficient, but obviously correct.  It is
   ;; also easy to guarantee that we're writing in 512-byte blocks.
   (let* ((namestring (namestring (entry-pathname entry)))
-         (bytename (funcall *string-to-bytevec-conversion-function*
-                            namestring))
+         (bytename (string-to-bytevec namestring))
          (entry-length (round-up-to-tar-block (1+ (length bytename))))
          (entry-buffer (make-array entry-length
                                    :element-type '(unsigned-byte 8)
@@ -341,8 +338,7 @@
      (tar-header-write-%name-to-buffer buffer start (%name entry)))
     (t
      (let* ((namestring (namestring (entry-pathname entry)))
-            (bytestring (funcall *string-to-bytevec-conversion-function*
-                                 namestring)))
+            (bytestring (string-to-bytevec namestring)))
        (tar-header-write-%name-to-buffer buffer start
                                          (subseq bytestring 0
                                                  (min (length bytestring)
