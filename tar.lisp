@@ -125,30 +125,6 @@
 
 ;;; Groveling through tar headers
 
-(defun convert-bytevec-to-string (buffer &key (start 0) end)
-  (let* ((end (or end
-                  (position 0 buffer :start start :end end)
-                  (length buffer)))
-         (string (make-string (- end start) :element-type 'base-char)))
-    (loop for string-index from 0
-          for buffer-index from start below end
-          do (setf (aref string string-index)
-                   (code-char (aref buffer buffer-index)))
-          finally (return string))))
-
-(defun convert-string-to-bytevec (string &key (start 0) end)
-  (let* ((end (or end (length string)))
-         (buffer (make-array (- end start) :element-type '(unsigned-byte 8)
-                             :initial-element 0)))
-    (loop for string-index from start below end
-          for buffer-index from 0
-          do (setf (aref buffer buffer-index)
-                   (char-code (aref string string-index)))
-          finally (return buffer))))
-
-(defvar *bytevec-to-string-conversion-function* #'convert-bytevec-to-string)
-(defvar *string-to-bytevec-conversion-function* #'convert-string-to-bytevec)
-
 (defun read-number-from-buffer (buffer &key (start 0) end (radix 10))
   (declare (type (simple-array (unsigned-byte 8) (*)) buffer))
   (declare (type (integer 2 36) radix))
