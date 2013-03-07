@@ -1,11 +1,12 @@
 ;;; -*- mode: lisp -*-
-(defpackage :archive-system
-  (:use :cl :asdf))
-(in-package :archive-system)
+(cl:defpackage :archive-system
+  (:use :cl))
+(cl:in-package :archive-system)
 
 (asdf:defsystem :archive
   :version "0.9"
   :author "Nathan Froyd <froydnj@gmail.com>"
+  :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A package for reading and writing archive (tar, cpio, etc.) files."
   :depends-on (#+sbcl sb-posix trivial-gray-streams cl-fad)
   :components ((:file "package")
@@ -23,7 +24,8 @@
                (:static-file "NEWS")
                (:static-file "LICENSE")))
 
-(defmethod perform :around ((o compile-op) (c (eql (find-system 'archive))))
+(defmethod asdf:perform :around ((o asdf:compile-op)
+                                 (c (eql (asdf:find-system 'archive))))
   (let ((use-sb-posix #+(and sbcl (not win32)) t))
     (if use-sb-posix
         (let ((*features* (cons :use-sb-posix *features*)))
