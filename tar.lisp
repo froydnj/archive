@@ -258,11 +258,8 @@
 
 (defun null-block-p (block start)
   (declare (type (simple-array (unsigned-byte 8) (*)) block))
-  (let ((end (+ start +tar-n-block-bytes+)))
-    (loop for i from start below end
-          unless (zerop (aref block i))
-            do (return-from null-block-p nil)
-          finally (return-from null-block-p t))))
+  (null (position-if-not #'zerop block
+			 :start start :end (+ start +tar-n-block-bytes+))))
 
 (defparameter *modefuns-to-typeflags*
   (list (cons 'isreg +tar-regular-file+)
