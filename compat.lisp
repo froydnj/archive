@@ -55,9 +55,9 @@
         (convert-to-lisp-struct stat)))))
 ) ; PROGN
 
-;;; CMUCL returns multiple values from UNIX:UNIX-STAT.  We need to
+;;; CMUCL and Clozure CL returns multiple values from UNIX:UNIX-STAT or CCL::%STAT.  We need to
 ;;; package these up into something to which we can repeatedly reference.
-#+cmucl
+#+(or cmucl ccl)
 (defclass stat ()
   ((dev :initarg :dev :reader dev)
    (ino :initarg :ino :reader ino)
@@ -103,7 +103,25 @@
                              :atime atime :mtime mtime :ctime ctime
                              :size size :blocks blocks :blksize blksize
                              :flags flags :gen gen))
-    #-(or sbcl lispworks clisp cmucl) (error "Not implemented")))
+    #+ccl
+    (multiple-value-bind (successp mode size mtime ino uid blksize rdev gid dev)
+        (if (integerp file)
+            (ccl::%fstat file)
+            (ccl::%stat (with-output-to-string (s)
+                          (loop for char across (princ-to-string file)
+                                ;; Sometimes a pathname contains some backslashes (#\\)
+                                ;; and CCL::%STAT fails with it.
+                                ;;   ex) "\\.travis.yml"
+                                unless (char= char #\\) do
+                                  (write-char char s)))))
+      (unless successp
+        (error "Could not get information on ~S" file))
+      (make-instance 'stat
+                     :dev dev :ino ino :mode mode
+                     :uid uid :gid gid :rdev rdev
+                     :mtime mtime
+                     :size size :blksize blksize))
+    #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented")))
 
 
 ;;; messing with stat modes
@@ -127,43 +145,43 @@
   #+sbcl (sb-posix::stat-mode stat)
   #+lispworks (file-stat-mode stat)
   #+clisp (posix:convert-mode (posix:file-stat-mode stat))
-  #+cmucl (mode stat)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (mode stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-uid (stat)
   #+sbcl (sb-posix::stat-uid stat)
   #+lispworks (file-stat-owner-id stat)
   #+clisp (posix:file-stat-uid stat)
-  #+cmucl (uid stat)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (uid stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-gid (stat)
   #+sbcl (sb-posix::stat-gid stat)
   #+lispworks (file-stat-group-id stat)
   #+clisp (posix:file-stat-gid stat)
-  #+cmucl (gid stat)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (gid stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-size (stat)
   #+sbcl (sb-posix::stat-size stat)
   #+lispworks (file-stat-size stat)
   #+clisp (posix:file-stat-size stat)
-  #+cmucl (size stat)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (size stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-mtime (stat)
   #+sbcl (sb-posix::stat-mtime stat)
   #+lispworks (file-stat-last-modify stat)
   #+clisp (posix:file-stat-mtime stat)
-  #+cmucl (mtime state)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (mtime stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-ino (stat)
   #+sbcl (sb-posix::stat-ino stat)
   #+lispworks (file-stat-inode stat)
   #+clisp (posix:file-stat-ino stat)
-  #+cmucl (ino stat)
-  #-(or sbcl lispworks clisp cmucl) (error "Not implemented"))
+  #+(or cmucl ccl) (ino stat)
+  #-(or sbcl lispworks clisp cmucl ccl) (error "Not implemented"))
 
 (defun stat-nlink (stat)
   #+sbcl (sb-posix::stat-nlink stat)
