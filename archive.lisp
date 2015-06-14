@@ -144,23 +144,24 @@ requirements about alignment."
     (values)))
 
 (defmethod write-entry-to-archive :after (archive (entry directory-entry-mixin)
-                                          &key stream)
+                                          &key stream (recurse-into-directory-entries t))
   (declare (ignore stream))
-  (let ((dirname (entry-pathname entry)))
-    (mapc
-     (lambda (pathname)
-       (flet ((relative-pathname (pathname)
-                (if (fad:directory-pathname-p pathname)
-                    (fad:pathname-as-directory (enough-namestring pathname))
-                    (fad:pathname-as-file (enough-namestring pathname)))))
-         (let* ((absolute? (and (not (string= "" (namestring dirname)))
-                                (eq :absolute
-                                    (first (pathname-directory dirname)))))
-                (adjusted-pathname (if absolute? pathname
-                                       (relative-pathname pathname)))
-                (entry (create-entry-from-pathname archive adjusted-pathname)))
-           (write-entry-to-archive archive entry))))
-     (fad:list-directory dirname))))
+  (when recurse-into-directory-entries
+    (let ((dirname (entry-pathname entry)))
+      (mapc
+       (lambda (pathname)
+         (flet ((relative-pathname (pathname)
+                  (if (fad:directory-pathname-p pathname)
+                      (fad:pathname-as-directory (enough-namestring pathname))
+                      (fad:pathname-as-file (enough-namestring pathname)))))
+           (let* ((absolute? (and (not (string= "" (namestring dirname)))
+                                  (eq :absolute
+                                      (first (pathname-directory dirname)))))
+                  (adjusted-pathname (if absolute? pathname
+                                         (relative-pathname pathname)))
+                  (entry (create-entry-from-pathname archive adjusted-pathname)))
+             (write-entry-to-archive archive entry))))
+       (fad:list-directory dirname)))))
 
 
 ;;; providing streamy access for an entry
