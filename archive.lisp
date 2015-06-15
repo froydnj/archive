@@ -134,7 +134,9 @@ requirements about alignment."
   ;; Directories generally don't have any associated data.
   (values))
 
-(defmethod write-entry-to-archive ((archive archive) entry &key (stream t))
+(defmethod write-entry-to-archive ((archive archive) entry
+                                   &key (stream t) (recurse-into-directory-entries t))
+  (declare (ignore recurse-into-directory-entries))
   (with-slots (entry-buffer (archive-stream stream)) archive
     ;; write the entry
     (write-entry-to-buffer entry entry-buffer 0)
