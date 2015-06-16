@@ -118,7 +118,8 @@ requirements about alignment."
                                  :if-does-not-exist :error)
        (transfer-stream-to-archive archive filestream)))
     ((typep stream 'stream)
-     (if (or (equal (stream-element-type stream) '(unsigned-byte 8))
+     (if (or (and (subtypep (stream-element-type stream) '(unsigned-byte 8))
+                  (subtypep '(unsigned-byte 8) (stream-element-type stream)))
              (equal (stream-element-type stream) '(integer 0 255)))
          (transfer-stream-to-archive archive stream)
          (error "Stream has invalid STREAM-ELEMENT-TYPE ~A"
@@ -134,7 +135,9 @@ requirements about alignment."
   ;; Directories generally don't have any associated data.
   (values))
 
-(defmethod write-entry-to-archive ((archive archive) entry &key (stream t))
+(defmethod write-entry-to-archive ((archive archive) entry &key (stream t)
+                                                             (recurse-into-directory-entries t))
+  (declare (ignore recurse-into-directory-entries))
   (with-slots (entry-buffer (archive-stream stream)) archive
     ;; write the entry
     (write-entry-to-buffer entry entry-buffer 0)
