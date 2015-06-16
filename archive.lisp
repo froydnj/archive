@@ -118,7 +118,8 @@ requirements about alignment."
                                  :if-does-not-exist :error)
        (transfer-stream-to-archive archive filestream)))
     ((typep stream 'stream)
-     (if (or (equal (stream-element-type stream) '(unsigned-byte 8))
+     (if (or (and (subtypep (stream-element-type stream) '(unsigned-byte 8))
+                  (subtypep '(unsigned-byte 8) (stream-element-type stream)))
              (equal (stream-element-type stream) '(integer 0 255)))
          (transfer-stream-to-archive archive stream)
          (error "Stream has invalid STREAM-ELEMENT-TYPE ~A"
