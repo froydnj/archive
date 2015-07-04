@@ -8,6 +8,7 @@
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A package for reading and writing archive (tar, cpio, etc.) files."
+  :license "BSD-style (http://opensource.org/licenses/BSD-3-Clause)"
   :depends-on (#+sbcl sb-posix trivial-gray-streams cl-fad)
   :components ((:file "package")
                (:file "conditions" :depends-on ("package"))
