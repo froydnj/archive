@@ -50,7 +50,7 @@
   (let ((stream (archive-stream instance)))
     ;; Hopefully this is portable.
     (when (typep stream 'file-stream)
-      (let ((stat (stat #+sbcl (sb-impl::fd-stream-fd stream)
+      (let ((stat (stat #+sbcl (truename stream)
                         #+cmucl (system::stream-fd stream)
                         #+(and lispworks unix) (stream::os-file-handle-stream-file-handle stream))))
         (when (and stat (isreg (stat-mode stat)))
