@@ -418,6 +418,8 @@
                (setf (linkname entry) real-link-name)
                entry))
             ((or (= (typeflag entry) +tar-regular-file+)
+                 (= (typeflag entry) +tar-hard-link+)
+                 (= (typeflag entry) +tar-symbolic-link+)
                  (= (typeflag entry) +tar-directory-file+))
              entry)
             ((= (typeflag entry) +posix-global-header+)
@@ -441,7 +443,9 @@
     (cond
       ((= (typeflag entry) +tar-directory-file+)
        (ensure-directories-exist name))
-      ((= (typeflag entry) +tar-regular-file+)
+      ((or (= (typeflag entry) +tar-regular-file+)
+           (= (typeflag entry) +tar-hard-link+)
+           (= (typeflag entry) +tar-symbolic-link+))
        (ensure-directories-exist name)
        (with-open-file (stream name :direction :output
                                :if-exists :supersede
@@ -482,6 +486,8 @@
                                            &key stream)
   (declare (ignore stream))
   (unless (member (typeflag entry) (list +tar-regular-file+
+                                         +tar-hard-link+
+                                         +tar-symbolic-link+
                                          +tar-directory-file+
                                          +gnutar-long-name+)
                   :test #'=)
